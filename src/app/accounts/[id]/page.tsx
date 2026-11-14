@@ -56,26 +56,40 @@ export default function AccountPage() {
 
   useEffect(() => { loadAccount(); }, [loadAccount]);
 
+  // Sync tools one at a time (Vercel 10s timeout — no sleeping in server)
   const handleSync = async () => {
     setSyncing(true);
-    setSyncMsg(null);
-    try {
-      const res = await fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tools: ['get_all_paperwork', 'get_signals', 'list_notes', 'get_flytbase_team'] }),
-      });
-      const data = await res.json();
-      const errs = Object.entries(data.results ?? {})
-        .filter(([, v]) => (v as { error?: string }).error)
-        .map(([k]) => k);
-      setSyncMsg(errs.length ? `Sync done (errors: ${errs.join(', ')})` : 'Sync complete');
-      await loadAccount();
-    } catch (e) {
-      setSyncMsg(`Error: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-      setSyncing(false);
+    const tools = ['get_all_paperwork', 'get_signals', 'list_notes', 'get_flytbase_team'];
+    let errors: string[] = [];
+    for (let i = 0; i < tools.length; i++) {
+      setSyncMsg(`Fetching ${tools[i]} (${i + 1}/${tools.length})…`);
+      try {
+        const res = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool: tools[i] }),
+        });
+        const data = await res.json();
+        if (data.isTokenError) {
+          setSyncMsg('❌ AQ_TOKEN not set — add it in Vercel Environment Variables');
+          setSyncing(false);
+          return;
+        }
+        if (data.error) errors.push(`${tools[i]}: ${data.error}`);
+        // Wait 62s between calls unless from cache or last item
+        if (!data.fromCache && i < tools.length - 1) {
+          for (let s = 62; s > 0; s--) {
+            setSyncMsg(`Rate limit — next call in ${s}s…`);
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+      } catch (e) {
+        errors.push(`${tools[i]}: ${e instanceof Error ? e.message : String(e)}`);
+      }
     }
+    setSyncMsg(errors.length ? `Done with errors: ${errors.join('; ')}` : '✅ Sync complete');
+    setSyncing(false);
+    await loadAccount();
   };
 
   if (loading) {
