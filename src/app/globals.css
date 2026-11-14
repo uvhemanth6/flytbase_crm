@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sidebar-width: 260px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth transitions */
+.transition-sidebar {
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Status badge base */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+/* Severity colors */
+.severity-critical { @apply bg-red-100 text-red-800; }
+.severity-high { @apply bg-orange-100 text-orange-800; }
+.severity-medium { @apply bg-yellow-100 text-yellow-800; }
+.severity-low { @apply bg-blue-100 text-blue-800; }
+
+/* Verification colors */
+.verif-verified { @apply bg-emerald-100 text-emerald-800; }
+.verif-estimated { @apply bg-amber-100 text-amber-800; }
+.verif-unverified { @apply bg-gray-100 text-gray-700; }
+
+/* Card hover effect */
+.crm-card {
+  @apply bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+/* Table styles */
+.crm-table th {
+  @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide bg-gray-50;
+}
+.crm-table td {
+  @apply px-4 py-3 text-sm text-gray-700 border-t border-gray-100;
+}
+.crm-table tr:hover td {
+  @apply bg-gray-50;
+}
